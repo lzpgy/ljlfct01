@@ -1,0 +1,38 @@
+name: Sync upstream repository
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天运行一次，你可以调整
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout current repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # 需要一个人访问令牌，用于推送
+
+    - name: Set up git
+      run: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+
+    - name: Add upstream repository
+      run: |
+        # 添加远程仓库，这里假设你要同步的仓库地址为https://github.com/ljlfct01/ljlfct01.github.io.git
+        git remote add upstream https://github.com/ljlfct01/ljlfct01.github.io.git
+        git fetch upstream
+
+    - name: Merge upstream changes
+      run: |
+        # 将上游仓库的更改合并到指定文件夹，假设你想将上游仓库的master分支合并到你的仓库的subdir文件夹
+        # 使用git subtree pull命令，但需要先确保已经添加了subtree，如果还没有，需要先添加。
+        # 如果已经添加过，可以直接pull。
+        # 这里假设你已经添加过，如果没有，你需要先运行git subtree add --prefix=subdir upstream master
+        git subtree pull --prefix=subdir upstream master --squash -m "Sync with upstream"
+
+    - name: Push changes
+      run: |
+        git push origin main
